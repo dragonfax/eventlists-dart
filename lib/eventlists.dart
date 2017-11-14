@@ -18,6 +18,8 @@ abstract class EventList<T> {
   operator [](int i);
   int get length;
 
+  forEach(void f(T element));
+
 }
 
 class BackedEventList<T> implements EventList<T> {
@@ -37,15 +39,16 @@ class BackedEventList<T> implements EventList<T> {
     _controller.add(new ListChangeEvent<T>(true,i,value));
   }
 
+  @override
+  forEach(void f(T Element)) {
+    _list.forEach(f);
+  }
+
   StreamController<ListChangeEvent<T>> _controller = new StreamController<ListChangeEvent<T>>();
 
   Stream<ListChangeEvent<T>> onChange;
 
   int get length => _list.length;
-}
-
-class SortedEventList<T> {
-
 }
 
 class ConcatenatedEventList<T> implements EventList {
@@ -75,4 +78,61 @@ class ConcatenatedEventList<T> implements EventList {
   int get length => _a.length + _b.length;
 
   Stream<ListChangeEvent<T>> onChange;
+
+  @override
+  forEach(void f(T Element)) {
+    _a.forEach(f);
+    _b.forEach(f);
+  }
 }
+
+class SortedEventList<T> implements EventList<T> {
+
+  List<int> _indexList = new List<int>();
+
+  EventList<T> _source;
+
+  operator [](int i) => _source[_indexList[i]];
+
+  Stream<ListChangeEvent<T>> onChange;
+
+  Comparator<T> _comp;
+
+  SortedEventList(this._source, this._comp) {
+
+    onChange = _source.onChange.map((ListChangeEvent<T> e){
+      int x = 0;
+      int newIndex = 0;
+      _indexList.forEach((int i) {
+        if (i == e.index ) {
+          newIndex = x;
+        }
+        x += 1;
+      });
+      return new ListChangeEvent(e.added, newIndex, e.item);
+    });
+
+    // Initialize as unsorted
+    int index = 0;
+    _source.forEach((e) {
+      _indexList[index] = index;
+      index += 1;
+    });
+
+    _sort();
+  }
+
+  int get length => _source.length;
+
+  forEach(void f(T element)) {
+    _source.forEach(f);
+  }
+
+  _sort() {
+    _indexList.sort((int a, int b) {
+      return _comp(_source[a], _source[b]);
+    });
+  }
+
+}
+

@@ -4,6 +4,8 @@ import 'listchangeevent.dart';
 
 typedef bool ListFilter<T>(T e);
 
+// TODO FilterList should really listen to objects as well. as thats what the filter is based on.
+//      SortedList  should do this as well.
 class FilteredEventList<T> implements EventList<T> {
 
   EventList<T> _source;

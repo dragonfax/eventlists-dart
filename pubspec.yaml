@@ -1,1 +1,4 @@
 name: eventlists
+
+dependencies:
+  async:

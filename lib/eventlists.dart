@@ -101,6 +101,12 @@ class SortedEventList<T> implements EventList<T> {
   SortedEventList(this._source, this._comp) {
 
     onChange = _source.onChange.map((ListChangeEvent<T> e){
+
+      // re-sort
+      // TODO: this could be done more efficiently
+      _sort();
+
+      // detect the translated index for the sorted item (even if it didnt' move).
       int x = 0;
       int newIndex = 0;
       _indexList.forEach((int i) {
@@ -109,6 +115,7 @@ class SortedEventList<T> implements EventList<T> {
         }
         x += 1;
       });
+
       return new ListChangeEvent(e.added, newIndex, e.item);
     });
 
